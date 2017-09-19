@@ -1,0 +1,24 @@
+{
+  "name": "lq2xq",
+  "version": "1.0.0",
+  "description": "lq2xq --------",
+  "main": "index.js",
+  "scripts": {
+    "test": "nodeunit"
+  },
+  "keywords": [],
+  "author": "mhzedd@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.14.74",
+    "@types/node": "^8.0.28",
+    "@types/nodeunit": "0.0.30",
+    "@types/pegjs": "^0.10.0",
+    "nodeunit": "^0.11.1",
+    "typescript": "^2.5.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "pegjs": "^0.10.0"
+  }
+}

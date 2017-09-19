@@ -1,0 +1,25 @@
+
+  {
+    "rules": {
+      "max-line-length": {
+        "options": [
+          120
+        ]
+      },
+      "new-parens": true,
+      "no-arg": true,
+      "no-bitwise": true,
+      "no-conditional-assignment": true,
+      "no-consecutive-blank-lines": false,
+      "no-console": false,
+      "no-unused-variable": true
+    },
+    "jsRules": {
+      "max-line-length": {
+        "options": [
+          120
+        ]
+      }
+    }
+  }  
+  
