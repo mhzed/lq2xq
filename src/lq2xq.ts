@@ -23,9 +23,9 @@ export interface RenderOptions {
    */
   similarityConverter? : (similarity:number) => string;
   /**
-   * TODO:
+   * for expanding a term or phrase to multiple terms or phrases, default is null.
    */
-  termConverter? : (term:string) => string;
+  termPhraseExpander? : (termOrPhrase:string, filedName:string|null, isPhrase:boolean) => Array<string>;
 }
 
 const DefaultRenderOption : RenderOptions = {
@@ -66,7 +66,6 @@ interface Expression {
 
 class RenderContext {
   readonly option: RenderOptions;
-  warnigs: Array<string> = [];
   readonly hasField: boolean;
   constructor(option: RenderOptions, hasField: boolean) {
     this.option = option;
@@ -93,34 +92,49 @@ const convertWildCard = (term: string) : string => {
 }
 
 const renderTerm = (term: Term, ctx : RenderContext) : string => {
+    if (ctx.option.termPhraseExpander) {
+      let expr = _(ctx.option.termPhraseExpander(term.term, term.field?term.field.field:null, false))
+          .map((newTerm:string)=>renderTermClause(_.assign({},term, {term:newTerm}), ctx))
+          .join(' ftor ');
+      return `(${renderField(term, ctx)}${expr})`;
+    } else
+      return `(${renderField(term, ctx)}${renderTermClause(term, ctx)})`;
+}
+const renderTermClause = (term: Term, ctx : RenderContext) : string => {
   let result : string;
-  
   let wildCardTerm = convertWildCard(term.term);
-  if (wildCardTerm != null) 
-    result = `(${renderField(term, ctx)}"${wildCardTerm}" using wildcards`;
+  if (wildCardTerm != null)
+    result = `"${wildCardTerm}" using wildcards`;
   else
-    result = `(${renderField(term, ctx)}"${term.term}"`;
-  
+    result = `"${term.term}"`;
   if (term.boost != null) result += ` weight {${term.boost}}`;
   if (term.similarity != null) {
-    if (ctx.option.similarityConverter == null) 
+    if (ctx.option.similarityConverter == null)
       throw new Error("Similarity is not supported")
-    else 
+    else
       result += ` ${ctx.option.similarityConverter(term.similarity)}`;
   }
   if (ctx.option.termPhraseModifier) result += ` ${ctx.option.termPhraseModifier}`;
-  result += ")";
   return result;
 }
-
 const renderPhrase = (phrase: Phrase, ctx: RenderContext) : string => {
-  let result = `(${renderField(phrase, ctx)}"${phrase.term}"`;
+  if (ctx.option.termPhraseExpander) {
+    let expr = _(ctx.option.termPhraseExpander(phrase.term, phrase.field?phrase.field.field:null, false))
+        .map((newPhrase:string)=>renderPhraseClause(_.assign({},phrase, {term:newPhrase}), ctx))
+        .join(' ftor ');
+    return `(${renderField(phrase, ctx)}${expr})`;
+  } else
+    return `(${renderField(phrase, ctx)}${renderPhraseClause(phrase, ctx)})`
+
+}
+const renderPhraseClause = (phrase: Phrase, ctx: RenderContext) : string => {
+  let result = `"${phrase.term}"`;
   if (phrase.boost != null) result += ` weight {${phrase.boost}}`;
   if (phrase.proximity != null) result += ` distance at most ${phrase.proximity} words`;
   if (ctx.option.termPhraseModifier) result += ` ${ctx.option.termPhraseModifier}`;
-  result += ")";
   return result;
 }
+
 const renderOperator = (op: string, ctx: RenderContext) : string => {
   switch (op) {
     case 'AND': return ctx.hasField ? 'AND' : 'ftand';

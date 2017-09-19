@@ -142,3 +142,24 @@ exports.xpathField =(test: nodeunit.Test) => {
 
 
 
+exports.expander =(test: nodeunit.Test) => {
+  (async function body() {
+    test.strictEqual(
+        lq2xq("abc AND efg", {termPhraseExpander: (term, field, isPhrase)=>[term, 'new'+term]}),
+        '. contains text (("abc" ftor "newabc") ftand ("efg" ftor "newefg"))'
+    )
+
+    test.strictEqual(
+        lq2xq("abc AND title:efg", {termPhraseExpander: (term, field, isPhrase)=>[term, 'new'+term]}),
+        '((. contains text "abc" ftor "newabc") AND (title contains text "efg" ftor "newefg"))'
+    )
+
+    test.strictEqual(
+        lq2xq('abc AND "efg etc"', {termPhraseExpander: (term, field, isPhrase)=>[term, 'new'+term]}),
+        '. contains text (("abc" ftor "newabc") ftand ("efg etc" ftor "newefg etc"))'
+    )
+
+  })().catch(test.ifError).then(test.done);
+}
+
+
