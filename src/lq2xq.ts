@@ -25,7 +25,7 @@ export interface RenderOptions {
   /**
    * for expanding a term or phrase to multiple terms or phrases, default is null.
    */
-  termPhraseExpander? : (termOrPhrase:string, filedName:string|null, isPhrase:boolean) => Promise<string[]>;
+  termPhraseExpander? : (termOrPhrase:string, filedName:string|null, isPhrase:boolean, prefix: string) => Promise<string[]>;
 }
 
 const DefaultRenderOption : RenderOptions = {
@@ -95,7 +95,7 @@ const convertWildCard = (term: string) : string => {
 
 const renderTerm = async (term: Term, ctx : RenderContext) : Promise<string> => {
     if (ctx.option.termPhraseExpander) {
-      let expr = _(await ctx.option.termPhraseExpander(term.term, term.field?term.field.field:null, false))
+      let expr = _(await ctx.option.termPhraseExpander(term.term, term.field?term.field.field:null, false, term.prefix))
           .map((newTerm:string)=>renderTermClause(_.assign({},term, {term:newTerm}), ctx))
           .join(' ftor ');
       return `(${renderField(term, ctx)}${expr})`;
@@ -121,7 +121,7 @@ const renderTermClause = (term: Term, ctx : RenderContext) : string => {
 };
 const renderPhrase = async (phrase: Phrase, ctx: RenderContext) : Promise<string> => {
   if (ctx.option.termPhraseExpander) {
-    let expr = _(await ctx.option.termPhraseExpander(phrase.term, phrase.field?phrase.field.field:null, false))
+    let expr = _(await ctx.option.termPhraseExpander(phrase.term, phrase.field?phrase.field.field:null, false, phrase.prefix))
         .map((newPhrase:string)=>renderPhraseClause(_.assign({},phrase, {term:newPhrase}), ctx))
         .join(' ftor ');
     return `(${renderField(phrase, ctx)}${expr})`;
