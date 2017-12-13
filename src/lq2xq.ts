@@ -25,7 +25,8 @@ export interface RenderOptions {
   /**
    * for expanding a term or phrase to multiple terms or phrases, default is null.
    */
-  termPhraseExpander? : (termOrPhrase:string, filedName:string|null, isPhrase:boolean, prefix: string) => Promise<string[]>;
+  termPhraseExpander? : (termOrPhrase:string, filedName:string|null, isPhrase:boolean, prefix: string) 
+    => Promise<string[]>;
 }
 
 const DefaultRenderOption : RenderOptions = {
@@ -121,7 +122,8 @@ const renderTermClause = (term: Term, ctx : RenderContext) : string => {
 };
 const renderPhrase = async (phrase: Phrase, ctx: RenderContext) : Promise<string> => {
   if (ctx.option.termPhraseExpander) {
-    let expr = _(await ctx.option.termPhraseExpander(phrase.term, phrase.field?phrase.field.field:null, false, phrase.prefix))
+    let expr = _(await ctx.option.termPhraseExpander(
+          phrase.term, phrase.field?phrase.field.field:null, false, phrase.prefix))
         .map((newPhrase:string)=>renderPhraseClause(_.assign({},phrase, {term:newPhrase}), ctx))
         .join(' ftor ');
     return `(${renderField(phrase, ctx)}${expr})`;
